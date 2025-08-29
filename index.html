@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mindbox ToDo</title>
+
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        body {
+            font-family: ui-sans-serif, system-ui, Segoe UI, Roboto, Arial;
+            background: #f7f7fb;
+            color: #1f2937;
+            margin: 0;
+            transition: background .2s, color .2s;
+            overflow: hidden; /* фон рисуем с запасом, скрываем края */
+        }
+
+            body.dark {
+                background: #0f1115;
+                color: #e5e7eb;
+            }
+
+        #bg {
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 0;
+            background: #f0f2fa;
+        }
+
+        body.dark #bg {
+            background: #0f1115;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 42px auto;
+            padding: 0 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* стеклянная карточка */
+        .card {
+            position: relative;
+            padding: 20px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.65);
+            box-shadow: 0 18px 50px rgba(0,0,0,.1);
+            backdrop-filter: blur(8px) saturate(120%);
+            transform-style: preserve-3d;
+            transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        body.dark .card {
+            background: rgba(21,25,35,0.6);
+            border-color: rgba(255,255,255,0.08);
+            box-shadow: 0 18px 50px rgba(0,0,0,.45);
+        }
+
+        h1 {
+            font-weight: 800;
+            letter-spacing: .5px;
+            color: #6366f1;
+            text-align: center;
+            margin: 0 0 16px;
+        }
+
+        body.dark h1 {
+            color: #a5b4fc;
+        }
+
+        h1.title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .logo-pepe {
+            width: 28px;
+            height: 28px;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        input, button {
+            font: inherit;
+        }
+
+        /* поля ввода */
+        .input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            outline: none;
+            background: #fff;
+            color: #111827;
+            caret-color: #111827;
+        }
+
+            .input:focus {
+                border-color: #6366f1;
+                box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+            }
+
+            .input::placeholder {
+                color: #9ca3af;
+            }
+
+        body.dark .input {
+            background: #0f1115;
+            border-color: #262b36;
+            color: #e5e7eb;
+            caret-color: #e5e7eb;
+        }
+
+            body.dark .input::placeholder {
+                color: #97a0af;
+            }
+
+        .hint {
+            font-size: 12px;
+            margin-top: 6px;
+            padding-left: 4px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+
+        body.dark .muted {
+            color: #97a0af;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* чипы фильтров */
+        .pill {
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            background: #fafafa;
+            cursor: pointer;
+            transition: box-shadow .2s, background .2s, border-color .2s;
+        }
+
+            .pill.active {
+                background: #eef2ff;
+                border-color: #c7d2fe;
+                color: #4338ca;
+                box-shadow: 0 0 0 3px rgba(99,102,241,.12), 0 0 14px rgba(99,102,241,.22);
+            }
+
+        body.dark .pill {
+            background: #121622;
+            border-color: #262b36;
+            color: #e5e7eb;
+        }
+
+            body.dark .pill.active {
+                background: #1b2140;
+                border-color: #3c4696;
+                color: #c7d2fe;
+                box-shadow: 0 0 0 3px rgba(99,102,241,.18), 0 0 14px rgba(99,102,241,.25);
+            }
+
+        .todo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+            .todo.completed .text {
+                color: #9ca3af;
+                text-decoration: line-through;
+            }
+
+        .grow {
+            flex: 1;
+        }
+
+        .clear {
+            background: transparent;
+            border: 0;
+            color: #ef4444;
+            cursor: pointer;
+        }
+
+        .empty {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+            border: 1px dashed #e5e7eb;
+            border-radius: 12px;
+        }
+
+        body.dark .empty {
+            border-color: #2b3240;
+        }
+
+        .footnote {
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+            color: #9aa4b2;
+        }
+
+        /* прогресс-бар с ракетой */
+        .progress {
+            position: relative;
+            height: 8px;
+            background: #e6e9fb;
+            border-radius: 999px;
+            margin: 8px 0 16px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg,#a5b4fc,#6366f1);
+            transition: width .4s;
+            border-radius: inherit;
+        }
+
+        .progress-rocket {
+            position: absolute;
+            top: -6px;
+            left: 0;
+            transform: translateX(-50%);
+            transition: left .4s;
+            font-size: 16px;
+            z-index: 2;
+        }
+
+            .progress-rocket.pulse {
+                animation: rocketPulse .8s ease-in-out infinite alternate;
+            }
+
+        @keyframes rocketPulse {
+            to {
+                transform: translateX(-50%) translateY(-1px) rotate(-4deg)
+            }
+        }
+
+        body.dark .progress {
+            background: #1b2140;
+        }
+
+        body.dark .progress-fill {
+            background: linear-gradient(90deg,#3c4696,#6366f1);
+        }
+
+        /* эффект при отметке */
+        @keyframes pop {
+            50% {
+                transform: scale(1.04)
+            }
+        }
+
+        .todo input[type="checkbox"]:checked ~ .text {
+            animation: pop .18s;
+        }
+
+        /* 3D tilt карточки */
+        .card[data-tilt="1"] {
+            transition: transform .03s linear;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .card {
+                transition: none
+            }
+
+            .progress-fill, .progress-rocket {
+                transition: none
+            }
+
+                .progress-rocket.pulse {
+                    animation: none
+                }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg" aria-hidden="true"></canvas>
+    <div id="root"></div>
+
+    <script>
+        (() => {
+            // фон из треугольников на canvas
+            const cvs = document.getElementById('bg');
+            const ctx = cvs.getContext('2d', { alpha: false });
+            const PAD = 32, SPACING = 120, JITTER = 0.35;
+            let w = 0, h = 0, dpr = Math.max(1, window.devicePixelRatio || 1);
+            let points = [], tris = [];
+            let mx = -9999, my = -9999;
+            addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+
+            function fit() {
+                const cssW = innerWidth + PAD * 2;
+                const cssH = innerHeight + PAD * 2;
+                w = cvs.width = Math.round(cssW * dpr);
+                h = cvs.height = Math.round(cssH * dpr);
+                cvs.style.width = cssW + 'px';
+                cvs.style.height = cssH + 'px';
+                cvs.style.left = -PAD + 'px';
+                cvs.style.top = -PAD + 'px';
+                build();
+            }
+
+            // генерируем сетку точек и треугольники
+            function build() {
+                points = []; tris = [];
+                const cols = Math.ceil((innerWidth + PAD * 2) / SPACING) + 2;
+                const rows = Math.ceil((innerHeight + PAD * 2) / SPACING) + 2;
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const px = (x - 1) * SPACING + (Math.random() - 0.5) * SPACING * JITTER;
+                        const py = (y - 1) * SPACING + (Math.random() - 0.5) * SPACING * JITTER;
+                        points.push({ x: px * dpr, y: py * dpr, ox: px * dpr, oy: py * dpr });
+                    }
+                }
+                const idx = (x, y) => y * cols + x;
+                for (let y = 0; y < rows - 1; y++) {
+                    for (let x = 0; x < cols - 1; x++) {
+                        const p00 = idx(x, y), p10 = idx(x + 1, y), p01 = idx(x, y + 1), p11 = idx(x + 1, y + 1);
+                        if ((x + y) % 2 === 0) tris.push([p00, p10, p01], [p10, p11, p01]);
+                        else tris.push([p00, p11, p01], [p00, p10, p11]);
+                    }
+                }
+            }
+
+            // псевдошум для дрожания
+            const n = (x, y, t) => (Math.sin(x * 0.0017 + t * 0.001) + Math.cos(y * 0.0013 - t * 0.0014)) * 0.5;
+
+            // основной рендер
+            function draw(t) {
+                if (!ctx) return;
+                ctx.clearRect(0, 0, w, h);
+                const dark = document.body.classList.contains('dark');
+                const hue = dark ? 220 : 228;
+                const baseL = dark ? 16 : 96;
+                ctx.fillStyle = `hsl(${hue} 40% ${baseL}%)`;
+                ctx.fillRect(0, 0, w, h);
+
+                for (let i = 0; i < points.length; i++) {
+                    const p = points[i];
+                    const jx = Math.sin((p.ox + i * 13.7 + t * 0.3) * 0.002) * 2 * dpr;
+                    const jy = Math.cos((p.oy + i * 11.3 - t * 0.25) * 0.002) * 2 * dpr;
+                    const dx = p.ox - (mx + PAD) * dpr, dy = p.oy - (my + PAD) * dpr;
+                    const dist = Math.hypot(dx, dy);
+                    const repel = Math.exp(-dist / (600 * dpr)) * 10 * dpr;
+                    p.x = p.ox + jx + (dx / (dist || 1)) * repel;
+                    p.y = p.oy + jy + (dy / (dist || 1)) * repel;
+                }
+
+                for (let k = 0; k < tris.length; k++) {
+                    const [a, b, c] = tris[k], p1 = points[a], p2 = points[b], p3 = points[c];
+                    const cx = (p1.x + p2.x + p3.x) / 3, cy = (p1.y + p2.y + p3.y) / 3;
+                    const toMouse = Math.hypot(cx - (mx + PAD) * dpr, cy - (my + PAD) * dpr);
+                    const shade = -8 + 14 * Math.exp(-toMouse / (550 * dpr)) + n(cx, cy, t);
+                    const light = (dark ? 18 : 82) + shade;
+                    ctx.fillStyle = `hsl(${hue} 28% ${light}%)`;
+                    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.closePath(); ctx.fill();
+                }
+                requestAnimationFrame(draw);
+            }
+
+            addEventListener('resize', fit);
+            fit(); requestAnimationFrame(draw);
+
+            // эффект 3D-tilt карточки
+            const cardInit = () => {
+                const el = document.querySelector('.card');
+                if (!el) return;
+                const max = 6;
+                el.setAttribute('data-tilt', '1');
+                el.addEventListener('mousemove', (e) => {
+                    const r = el.getBoundingClientRect();
+                    const rx = ((e.clientY - r.top) / r.height - .5) * -max;
+                    const ry = ((e.clientX - r.left) / r.width - .5) * max;
+                    el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+                });
+                el.addEventListener('mouseleave', () => { el.style.transform = 'none'; });
+            };
+            new MutationObserver(cardInit).observe(document, { childList: true, subtree: true });
+            cardInit();
+
+            // rocket pulse при 100%
+            const rocketMO = new MutationObserver(() => {
+                const fill = document.querySelector('.progress-fill');
+                const rocket = document.querySelector('.progress-rocket');
+                if (!fill || !rocket) return;
+                const w = parseFloat(fill.style.width || '0');
+                rocket.classList.toggle('pulse', w >= 99);
+            });
+            rocketMO.observe(document, { attributes: true, subtree: true, attributeFilter: ['style', 'class'] });
+        })();
+    </script>
+
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
