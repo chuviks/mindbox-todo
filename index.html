@@ -96,6 +96,7 @@
         /* поля ввода */
         .input {
             width: 100%;
+            box-sizing: border-box;
             padding: 14px 16px;
             border: 1px solid #e5e7eb;
             border-radius: 12px;
@@ -276,6 +277,31 @@
         body.dark .progress-fill {
             background: linear-gradient(90deg,#3c4696,#6366f1);
         }
+
+        /* конфетти при 100% */
+        .confetti {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 2px;
+            opacity: .95;
+            animation: confetti 1800ms ease-out forwards;
+            pointer-events: none;
+            z-index: 3; /* поверх содержимого карточки */
+        }
+
+        @keyframes confetti {
+            100% {
+                transform: translate(var(--x,0), 0) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(calc(var(--x,0) * 5.2), -120px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
 
         /* эффект при отметке */
         @keyframes pop {
