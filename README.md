@@ -1,6 +1,6 @@
 # Mindbox ToDo
 
-Демо: https://mindbox-todo-dun.vercel.app
+Демо: https://mindbox-todo-rho.vercel.app
 Репозиторий: https://github.com/chuviks/mindbox-todo
 
 Маленькое ToDo-приложение для тестового задания (React, TypeScript, Hooks, Vite).
